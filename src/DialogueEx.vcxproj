@@ -53,14 +53,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v145</PlatformToolset>
+    <!-- Off: the prebuilt F4SEVR libs in libs/release hold /GL objects from an older compiler, which LTCG rejects (C1047). -->
+    <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -72,7 +73,14 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <!-- Root of the F4SEVR sources (the folder holding "common" and "f4sevr"). Probed in the usual checkout locations; override with the F4SEVRSrcDir environment variable or /p:F4SEVRSrcDir=... -->
+    <F4SEVRSrcDir Condition="'$(F4SEVRSrcDir)' == '' And Exists('$(SolutionDir)..\..\f4sevr\src')">$(SolutionDir)..\..\f4sevr\src</F4SEVRSrcDir>
+    <F4SEVRSrcDir Condition="'$(F4SEVRSrcDir)' == '' And Exists('$(SolutionDir)..\..\..\Modding\f4sevr\src')">$(SolutionDir)..\..\..\Modding\f4sevr\src</F4SEVRSrcDir>
+  </PropertyGroup>
+  <Target Name="CheckF4SEVRSrcDir" BeforeTargets="ClCompile" Condition="'$(F4SEVRSrcDir)' == ''">
+    <Error Text="F4SEVR sources were not found. Set the F4SEVRSrcDir property (or an environment variable of the same name) to the f4sevr &quot;src&quot; folder." />
+  </Target>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>XDI</TargetName>
@@ -88,7 +96,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;F4SE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\..;$(SolutionDir)\..\..\f4sevr\src;$(SolutionDir)\..\..\f4sevr\src\f4sevr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\..;$(F4SEVRSrcDir);$(F4SEVRSrcDir)\f4sevr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>common/IPrefix.h</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -100,8 +108,8 @@
       <AdditionalDependencies>common_vc14.lib;f4se_common.lib;f4sevr_1_2_72.lib;f4se_loader_common.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /b /y "$(TargetPath)" "C:\Stuff\Fallout Modding\MO2 - Mad God Overhaul\mods\XDI - DEV\F4SE\Plugins\$(TargetFileName)"
-copy /b /y "$(TargetPath)" "C:\Stuff\Fallout Modding\MO2 - FOLON\mods\XDI VR - DEV\F4SE\Plugins\$(TargetFileName)"</Command>
+      <Command>copy /b /y "$(TargetPath)" "C:\Stuff\Fallout4VR\MO2 - Mad God Overhaul\mods\XDI - DEV\F4SE\Plugins\$(TargetFileName)"
+copy /b /y "$(TargetPath)" "C:\Stuff\Fallout4VR\MO2 - FOLON\mods\XDI VR - DEV\F4SE\Plugins\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>
@@ -116,7 +124,7 @@ copy /b /y "$(TargetPath)" "C:\Stuff\Fallout Modding\MO2 - FOLON\mods\XDI VR - D
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;F4SE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\..;$(SolutionDir)\..\..\f4sevr\src\;$(SolutionDir)\..\..\f4sevr\src\f4sevr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\..;$(F4SEVRSrcDir);$(F4SEVRSrcDir)\f4sevr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>common/IPrefix.h</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -130,7 +138,7 @@ copy /b /y "$(TargetPath)" "C:\Stuff\Fallout Modding\MO2 - FOLON\mods\XDI VR - D
       <AdditionalDependencies>common_vc14.lib;f4se_common.lib;f4sevr_1_2_72.lib;f4se_loader_common.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /b /y "$(TargetPath)" "C:\Stuff\Fallout Modding\MO2 - Mad God Overhaul\mods\XDI - DEV\F4SE\Plugins\$(TargetFileName)"</Command>
+      <Command>copy /b /y "$(TargetPath)" "C:\Stuff\Fallout4VR\MO2 - Mad God Overhaul\mods\XDI - DEV\F4SE\Plugins\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>
